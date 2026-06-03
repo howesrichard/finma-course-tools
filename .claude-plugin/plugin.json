@@ -1,0 +1,6 @@
+{
+  "name": "finma-course-tools",
+  "description": "Shared Claude Code tooling for FINMA course repos: dual-format content-modularizer agent, slide-fit and SVG-review skills, and the PostToolUse hooks that nudge them.",
+  "homepage": "https://github.com/howesrichard/finma-course-tools",
+  "repository": "https://github.com/howesrichard/finma-course-tools"
+}
