@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 # PostToolUse hook.  After a Write/Edit/MultiEdit touches a Typst module
 # file under modules/Session_*/, emit a reminder to Claude to run the
-# slide-fit-check skill before reporting the task complete.
+# slide-fit-check AND box-fit-check skills before reporting the task complete.
 #
-# Typst silently clips content that overflows the slide canvas rather than
-# erroring, so layout-affecting edits need a post-build verification.
+# Typst silently overflows content rather than erroring in two places:
+#   - slide canvas         -> slide-fit-check  (content-block summary spill)
+#   - document callout box  -> box-fit-check   (takeaways/definition/example/
+#                             concept boxes use block(breakable: false))
+# Both are layout-affecting edits that need a post-build verification.
 #
 # Stdin:  tool-event JSON payload (contains tool_input.file_path).
 # Stderr: message surfaced to Claude when exit code is 2.
@@ -26,15 +29,24 @@ print((data.get("tool_input") or {}).get("file_path", ""))
 case "$file_path" in
   */modules/Session_*/*.typ)
     cat <<MSG >&2
-Slide-emitting Typst module modified: ${file_path}
-Before reporting the task complete, invoke the slide-fit-check skill.
-It rebuilds the session slides, locates the edited content-block(s) in
-the PDF, and checks whether any element's bbox extends past the slide
-canvas (Typst silently clips overflow rather than erroring).
+Typst module modified: ${file_path}
+Before reporting the task complete, consider two post-build checks
+(Typst silently overflows rather than erroring in both):
 
-Skip the check when the edit only touched a \`details:\` block, a
-\`content-block-doc-only(...)\`, or anything else that does not affect
-slide layout (typo fixes in prose, etc).
+1. slide-fit-check — if the edit changed a \`content-block\`'s \`summary:\`
+   (the slide body). Rebuilds the session slides and checks whether any
+   element's bbox extends past the slide canvas.
+   Skip if the edit only touched \`details:\`, a \`content-block-doc-only(...)\`,
+   or anything that cannot affect slide layout.
+
+2. box-fit-check — if the edit changed the body of a document callout box
+   (\`takeaways-box\`, \`definition-box\`, \`example-box\`, \`concept-box\`; these
+   often live in \`details:\` prose). Rebuilds the session document and checks
+   whether any box's content spills past its border off the page bottom.
+   Skip if the edit is outside any callout box.
+
+Run whichever applies (often neither, sometimes both). Say in one line
+which you ran or why you skipped.
 MSG
     exit 2
     ;;
