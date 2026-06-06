@@ -7,8 +7,10 @@ Claude Code plugin providing shared tooling for FINMA course repos built on
 
 - **Agent:** `content-modularizer` — extracts session file sections into
   reusable modules under `modules/Session_N/`, preserving dual-format output.
-- **Skills:** `slide-fit-check` (verifies slide content fits the canvas) and
-  `svg-review` (visual review checklist for hand-crafted SVGs).
+- **Skills:** `slide-fit-check` (verifies slide content fits the canvas),
+  `svg-review` (visual review checklist for hand-crafted SVGs), and
+  `finance-diagram` (generates option payoff, cashflow timeline, and party/flow
+  swap diagrams via the `finma-course-visuals` library).
 - **Hooks:** PostToolUse hooks that nudge Claude to run the above skills after
   editing module files (`modules/Session_*/*.typ`) or SVGs (`**/assets/*.svg`).
 
