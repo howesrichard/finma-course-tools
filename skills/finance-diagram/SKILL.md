@@ -82,14 +82,34 @@ where `quantity` is `+N` long / `-N` short and `kind` is `'call' | 'put' | 'stoc
 `mode` is `'profit'` (default), `'payoff'`, or `'both'`. Profit subtracts
 premium; payoff is intrinsic value only.
 
-## Step 3 — Write a driver into the consuming repo
+## Step 3 — Write a driver into the COURSE repo
 
-Place it in the repo's diagram folder (mirror the repo's convention, e.g.
-`Week_X/diagrams/generate_<name>.py` or `assets/generators/`). Keep it to the
-house shape: `use_house_style("svg")` → build the model → `plot_*` →
-`save_figure(..., "<name>.svg")` into the repo's `assets/` (or the folder the
-repo already uses). Default to SVG so `svg-review` and `slide-fit-check` can
-lint it.
+**Where — read this before writing anything.** The driver *and* its SVG belong
+in the **course repo you are authoring** — the one holding the course content
+(`Session_*/` folders, the `Makefile`, the Typst sources). For a real course
+that is that course's own repo; in this template it is `finma-course-template`.
+
+**Never write into the `finma-course-visuals` checkout.** In a tooling-dev
+workspace several repos are open at once, and `finma-course-visuals` is the
+*installed library dependency*, not an output location — its `out/` and
+`examples/` exist only for developing the library, and anything saved there
+would never ship with a course. Likewise never write into `finma-course-tools`
+(the plugin). If several repos are open, the course repo is simply the one that
+is **not** `finma-course-visuals` and **not** `finma-course-tools`.
+
+**Use an absolute path anchored at the course repo root** (e.g.
+`/workspaces/<course-repo>/...`), never a bare relative path — a relative path
+resolves against whatever happens to be the cwd, which is how output wrongly
+lands in the library's `out/`. Confirm the course repo root first (e.g. the
+directory containing the `Makefile` and `Session_*/`).
+
+Place the driver in the course repo's diagram convention (e.g.
+`/workspaces/<course-repo>/Week_X/diagrams/generate_<name>.py`, or an
+`assets/` generators folder) and save the SVG into an `assets/` folder so
+`svg-review` / `slide-fit-check` (which match `**/assets/*.svg`) can lint it.
+Keep it to the house shape: `use_house_style("svg")` → build the model →
+`plot_*` → `save_figure(..., "/workspaces/<course-repo>/.../<name>.svg")`.
+Default to SVG.
 
 **Option strategy (single panel):**
 
@@ -100,7 +120,7 @@ use_house_style("svg")
 spread = Strategy.bull_call_spread(K1=45, K2=55, p1=7, p2=3)
 fig = plot_strategy(spread, s_min=30, s_max=70, mode="profit",
                     info_box="Long Call @45 / Short Call @55\nNet debit: 4")
-save_figure(fig, "assets/bull_call_spread.svg")
+save_figure(fig, "/workspaces/<course-repo>/assets/bull_call_spread.svg")
 ```
 
 **Decomposition strip (built up from legs):**
@@ -111,7 +131,7 @@ from finma_visuals import use_house_style, save_figure, Strategy, plot_strategy_
 use_house_style("svg")
 collar = Strategy.collar(S0=100, K_put=95, K_call=110)
 fig = plot_strategy_decomposition(collar, s_min=80, s_max=125)  # auto "+ + ="
-save_figure(fig, "assets/collar.svg")
+save_figure(fig, "/workspaces/<course-repo>/assets/collar.svg")
 ```
 
 **Grid of independent positions:**
@@ -123,7 +143,7 @@ use_house_style("svg")
 strategies = [Strategy.long_call(50, 5), Strategy.short_call(50, 5),
               Strategy.long_put(50, 5), Strategy.short_put(50, 5)]
 fig = plot_grid(strategies, s_min=30, s_max=70, ncols=2, footer="K=$50 | Premium=$5")
-save_figure(fig, "assets/basic_payoffs.svg")
+save_figure(fig, "/workspaces/<course-repo>/assets/basic_payoffs.svg")
 ```
 
 **Cashflow timeline:**
@@ -142,7 +162,7 @@ fig = plot_cashflow_timeline(
     period_label="one quarter", period_span=(1, 2),
     insight="No principal exchange — notional is reference only",
     legend=[(Palette.NAVY, "Fixed leg (pay)"), (Palette.GOLD, "Floating leg (receive)")])
-save_figure(fig, "assets/ir_swap_timeline.svg")
+save_figure(fig, "/workspaces/<course-repo>/assets/ir_swap_timeline.svg")
 ```
 
 **Party / flow box diagram:**
@@ -153,7 +173,7 @@ from finma_visuals import use_house_style, save_figure, fixed_for_floating
 use_house_style("svg")
 fig = fixed_for_floating(payer="Corporate", receiver="Swap Dealer",
                          fixed="Fixed 4.50%", floating="3M BBSW")
-save_figure(fig, "assets/fixed_float_swap.svg")
+save_figure(fig, "/workspaces/<course-repo>/assets/fixed_float_swap.svg")
 ```
 
 For a general multi-party flow, build `Party(id, label, pos=(x, y))` boxes and
