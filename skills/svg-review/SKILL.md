@@ -13,6 +13,27 @@ Catch clutter and asymmetry **before** the user has to point them out. Every ite
 - Before reporting an SVG-authoring task complete.
 - When the user reports a visual issue — run the full checklist so you catch the neighbouring problems too, not just the one they flagged.
 
+## Step 0 — rasterize and look at it first
+
+Before any geometry math, **render the SVG to a PNG and actually look at it.** The
+checklist below approximates bounding boxes by hand; a raster lets you see the
+real layout and catch overlaps, clipping, and imbalance the math misses.
+
+```bash
+rsvg-convert -o /tmp/svg-review.png path/to/diagram.svg
+```
+
+Then `Read` `/tmp/svg-review.png` to view it. Form a first impression — what looks
+crowded, crooked, or off — then use the checklist below to confirm and to quantify
+each issue with coordinates.
+
+`rsvg-convert` (from `librsvg2-bin`) is installed by the course devcontainer. If
+it's missing (`command -v rsvg-convert` returns nothing), fall back in order:
+`resvg diagram.svg /tmp/svg-review.png`, `cairosvg diagram.svg -o /tmp/svg-review.png`,
+or `inkscape --export-type=png -o /tmp/svg-review.png diagram.svg`. If none are
+available, say you're reviewing analytically (no raster) and proceed with the
+bounding-box math alone.
+
 ## Before you start
 
 - Read the SVG file you just wrote. Identify: title/subtitle text, phase bands / background panels, box elements (rect), connector elements (line, polyline, path), text labels, legend if any.
